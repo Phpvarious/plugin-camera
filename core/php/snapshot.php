@@ -24,12 +24,17 @@ if (!is_object($camera)) {
 if ($camera->getEqType_name() != 'camera') {
 	die();
 }
-if ($camera->getConfiguration('localApiKey') != init('apikey')) {
+if ($camera->getConfiguration('localApiKey') != init('api')) {
 	die();
 }
 ob_clean();
 header('Content-Type: image/jpeg');
+try {
 $data = $camera->getSnapshot();
+} catch (Exception $e) {
+  log::add('camera', 'info', 'TETETT' . json_encode(utils::o2a($e)));
+
+}
 if (!is_string($data)) {
 	die();
 }

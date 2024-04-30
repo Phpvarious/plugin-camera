@@ -213,13 +213,19 @@ $eqLogics = eqLogic::byType($plugin->getId());
 								</div>
 							</div>
 							<div class="form-group">
-								<label class="col-sm-4 control-label">{{Option flux video}}</label>
+                                <label class="col-sm-4 control-label">{{Convertir en x264 le flux RTSP}}</label>
+								<div class="col-sm-6">
+									<input type="checkbox" class="eqLogicAttr" data-l1key="configuration" data-l2key="encodeX264RTSP" />
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="col-sm-4 control-label">{{Option flux vidéo}}</label>
 								<div class="col-sm-6">
 									<input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="rtsp_option" />
 								</div>
 							</div>
 							<div class="form-group">
-								<label class="col-sm-4 control-label">{{Previsualiser}}</label>
+								<label class="col-sm-4 control-label">{{Prévisualiser}}</label>
 								<div class="col-xs-1 col-sm-1">
 									<a class="btn btn-default" id="bt_previewCam" style="width:100%;height:40px;"><i class="fas fa-eye" style="font-size:2.2em;"></i></a>
 								</div>
@@ -365,7 +371,7 @@ $eqLogics = eqLogic::byType($plugin->getId());
 							</div>
 						</div>
 						<div class="form-group">
-							<label class="col-sm-4 control-label">{{Toujours faire une video}}</label>
+							<label class="col-sm-4 control-label">{{Toujours faire une vidéo}}</label>
 							<div class="col-sm-6">
 								<input type="checkbox" class="eqLogicAttr" data-l1key="configuration" data-l2key="preferVideo" />
 							</div>
