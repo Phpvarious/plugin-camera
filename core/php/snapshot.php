@@ -29,9 +29,7 @@ if ($camera->getConfiguration('localApiKey') != init('apikey')) {
 }
 ob_clean();
 header('Content-Type: image/jpeg');
-
 $data = $camera->getSnapshot();
-
 if (!is_string($data)) {
 	die();
 }
