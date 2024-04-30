@@ -29,12 +29,9 @@ if ($camera->getConfiguration('localApiKey') != init('apikey')) {
 }
 ob_clean();
 header('Content-Type: image/jpeg');
-try {
-$data = $camera->getSnapshot();
-} catch (Exception $e) {
-  log::add('camera', 'info', 'TETETT' . json_encode(utils::o2a($e)));
 
-}
+$data = $camera->getSnapshot();
+
 if (!is_string($data)) {
 	die();
 }
