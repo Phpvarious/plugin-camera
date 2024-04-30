@@ -24,7 +24,7 @@ if (!is_object($camera)) {
 if ($camera->getEqType_name() != 'camera') {
 	die();
 }
-if ($camera->getConfiguration('localApiKey') != init('api')) {
+if ($camera->getConfiguration('localApiKey') != init('apikey')) {
 	die();
 }
 ob_clean();
