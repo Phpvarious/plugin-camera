@@ -651,7 +651,7 @@ class camera extends eqLogic {
 			'#password#' => urlencode($this->getConfiguration('password')),
 		);
 		if ($_flux) {
-			return 'plugins/camera/core/php/snapshot.php?id=' . $this->getId() . '&api=' . $this->getConfiguration('localApiKey');
+			return 'plugins/camera/core/php/snapshot.php?id=' . $this->getId() . '&apikey=' . $this->getConfiguration('localApiKey');
 		}
 		$url = $this->getConfiguration('protocole', 'http');
 		$url .= '://';
