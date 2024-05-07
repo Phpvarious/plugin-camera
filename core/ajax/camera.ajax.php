@@ -31,7 +31,8 @@ try {
 		if(!is_object($camera)){
 			throw new \Exception(__('Impossible de trouver la camera : ',__FILE__).init('id'));
 		}
-		if(count(system::ps('rtsp-to-hls.sh.*'.$camera->getConfiguration('localApiKey'))) == 0){
+        $rtspScript = dirname(__FILE__) . '/../../3rdparty/rtsp-to-hls-' . ($camera->getConfiguration('encodeX264RTSP', 0) == 1 ? 'x264' : 'copy') . '.sh ';
+		if(count(system::ps('rtsp-to-hls-*.sh.*'.$camera->getConfiguration('localApiKey'))) == 0){
 			shell_exec('(ps ax || ps w) | grep ffmpeg.*'.$camera->getConfiguration('localApiKey').' | awk \'{print $2}\' |  xargs sudo kill -9');
 			$replace = array(
 				'#username#' => urlencode($camera->getConfiguration('username')),
@@ -43,8 +44,8 @@ try {
 			if (!file_exists(dirname(__FILE__) . '/../../data/segments')) {
 				mkdir(dirname(__FILE__) . '/../../data/segments', 0777, true);
 			}
-			log::add('camera', 'debug', 'nohup '.dirname(__FILE__) . '/../../3rdparty/rtsp-to-hls.sh ' . trim(str_replace(array_keys($replace), $replace, $camera->getConfiguration('cameraStreamAccessUrl'))).' "' . $camera->getConfiguration('localApiKey') . '" > /dev/null 2>&1 &');
-			exec('nohup ' .dirname(__FILE__) . '/../../3rdparty/rtsp-to-hls.sh ' . trim(str_replace(array_keys($replace), $replace, $camera->getConfiguration('cameraStreamAccessUrl'))).' "' . $camera->getConfiguration('localApiKey') . '" > /dev/null 2>&1 &');
+			log::add('camera', 'debug', 'nohup ' . $rtspScript . trim(str_replace(array_keys($replace), $replace, $camera->getConfiguration('cameraStreamAccessUrl'))).' "' . $camera->getConfiguration('localApiKey') . '" > /dev/null 2>&1 &');
+			exec('nohup ' . $rtspScript . trim(str_replace(array_keys($replace), $replace, $camera->getConfiguration('cameraStreamAccessUrl'))).' "' . $camera->getConfiguration('localApiKey') . '" > /dev/null 2>&1 &');
 			$i=0;
 			while(!file_exists(__DIR__.'/../../data/'.$camera->getConfiguration('localApiKey').'.m3u8')){
 				sleep(1);
