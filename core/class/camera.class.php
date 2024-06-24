@@ -583,16 +583,21 @@ class camera extends eqLogic {
 							'#name#' => ($cmd->getDisplay('icon') != '') ? $cmd->getDisplay('icon') : $cmd->getName(),
 						);
 						$action .= template_replace($replaceCmd, getTemplate('core', $version, 'camera_action', 'camera')) . ' ';
+						if ($cmd->getDisplay('forceReturnLineAfter', 0) == 1) {
+							$action .= '<div class="break"></div>';
+						}
 					} else {
 						if ($cmd->getType() == 'info') {
 							$info .= $cmd->toHtml($_version);
+							if ($cmd->getDisplay('forceReturnLineAfter', 0) == 1) {
+								$info .= '<div class="break"></div>';
+							}
 						} else {
 							$action .= $cmd->toHtml($_version);
+							if ($cmd->getDisplay('forceReturnLineAfter', 0) == 1) {
+								$action .= '<div class="break"></div>';
+							}
 						}
-					}
-
-					if ($cmd->getDisplay('forceReturnLineAfter', 0) == 1) {
-						$action .= '<br/>';
 					}
 				}
 			}
