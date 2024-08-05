@@ -962,6 +962,12 @@ class camera extends eqLogic {
 	}
 
 	public function getImage() {
+		if(method_exists($this,'getCustomImage')){
+		 $customImage = $this->getCustomImage();
+		 if($customImage !== null){
+		    return $customImage;
+		 }
+	        }
 		if (file_exists(__DIR__ . '/../config/devices/' . self::getImgFilePath($this->getConfiguration('device')) . '.png')) {
 			return 'plugins/camera/core/config/devices/' . self::getImgFilePath($this->getConfiguration('device')) . '.png';
 		}
