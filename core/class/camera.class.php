@@ -973,7 +973,12 @@ class camera extends eqLogic {
 		}
 		return 'plugins/camera/core/config/devices/' . self::getImgFilePath($this->getConfiguration('device')) . '.jpg';
 	}
-
+  	
+	public static function backupExclude()
+  	{
+    		// retourne le répertoire des datas à ne pas enregistrer dans le backup Jeedom
+    		return ['data'];
+  	}
 	/*     * **********************Getteur Setteur*************************** */
 }
 
