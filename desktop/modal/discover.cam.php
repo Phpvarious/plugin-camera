@@ -11,6 +11,7 @@ $discover_cameras = camera::discoverCam();
 	<thead>
 		<tr>
 			<th>{{IP}}</th>
+			<th>{{Port}}</th>
 			<th>{{Découverte}}</th>
 			<th>{{Type}}</th>
 			<th>{{Nom d'utilisateur}}</th>
@@ -20,39 +21,42 @@ $discover_cameras = camera::discoverCam();
 	</thead>
 	<tbody>
 		<?php
-		foreach ($discover_cameras as $cam) {
-			echo '<tr>';
-			echo '<td>';
-			echo '<span class="camDiscoverAttr" data-l1key="ip">' . $cam['ip'] . '</span>';
-			echo '</td>';
-			echo '<td>';
-			echo '<span class="camDiscoverAttr" data-l1key="discover">' . $cam['discover'] . '</span>';
-			echo '</td>';
-			echo '<td>';
-			echo $cam['type'];
-			echo '</td>';
-			echo '<td>';
-			if ($cam['exist'] === false) {
-				echo '<input class="camDiscoverAttr" data-l1key="username" />';
-			} else {
-				echo 'NA';
-			}
-			echo '</td>';
-			echo '<td>';
-			if ($cam['exist'] === false) {
-				echo '<input type="password" autocomplete="new-password" class="camDiscoverAttr" data-l1key="password" />';
-			} else {
-				echo 'NA';
-			}
-			echo '</td>';
-			echo '<td>';
-			if ($cam['exist'] === false) {
-				echo '<a class="btn btn-success btn-sm bt_addDiscoverCam"><i class="fas fa-plus"> {{Ajouter}}</a>';
-			}
-			echo '</td>';
-			echo '</tr>';
-		}
-		?>
+foreach ($discover_cameras as $cam) {
+	echo '<tr>';
+	echo '<td>';
+	echo '<span class="camDiscoverAttr" data-l1key="ip">' . $cam['ip'] . '</span>';
+	echo '</td>';
+	echo '<td>';
+	echo '<span class="camDiscoverAttr" data-l1key="port">' . $cam['port'] . '</span>';
+	echo '</td>';
+	echo '<td>';
+	echo '<span class="camDiscoverAttr" data-l1key="discover">' . $cam['discover'] . '</span>';
+	echo '</td>';
+	echo '<td>';
+	echo $cam['type'];
+	echo '</td>';
+	echo '<td>';
+	if ($cam['exist'] === false) {
+		echo '<input class="camDiscoverAttr" data-l1key="username" />';
+	} else {
+		echo 'NA';
+	}
+	echo '</td>';
+	echo '<td>';
+	if ($cam['exist'] === false) {
+		echo '<input type="password" autocomplete="new-password" class="camDiscoverAttr" data-l1key="password" />';
+	} else {
+		echo 'NA';
+	}
+	echo '</td>';
+	echo '<td>';
+	if ($cam['exist'] === false) {
+		echo '<a class="btn btn-success btn-sm bt_addDiscoverCam"><i class="fas fa-plus"> {{Ajouter}}</a>';
+	}
+	echo '</td>';
+	echo '</tr>';
+}
+?>
 	</tbody>
 </table>
 

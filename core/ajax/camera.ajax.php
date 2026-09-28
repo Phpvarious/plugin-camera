@@ -101,6 +101,22 @@ try {
 		camera::addDiscoverCam(json_decode(init('config'), true));
 		ajax::success();
 	}
+  
+	if (init('action') == 'getConfigOnvif') {
+		$camera = camera::byId(init('id'));
+		if (!is_object($camera)) {
+			throw new Exception(__('Equipement introuvable', __FILE__) . ' : ' . init('id'));
+		}
+		ajax::success($camera->getConfigOnvif());
+	}
+  
+	if (init('action') == 'createCmdPresetOnvif') {
+		$camera = camera::byId(init('id'));
+		if (!is_object($camera)) {
+			throw new Exception(__('Equipement introuvable', __FILE__) . ' : ' . init('id'));
+		}
+		ajax::success($camera->createCmdPresetOnvif());
+	}
 
 	if (init('action') == 'removeRecord') {
 		$file = init('file');
@@ -111,7 +127,6 @@ try {
 	}
 
 	if (init('action') == 'removeAllSnapshot') {
-		/** @var camera $camera */
 		$camera = camera::byId(init('id'));
 		if (!is_object($camera)) {
 			throw new Exception(__('Equipement introuvable', __FILE__) . ' : ' . init('id'));

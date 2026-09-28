@@ -300,13 +300,17 @@ class camera extends eqLogic {
 		$onvif = new Ponvif();
 		$onvif->setDiscoveryTimeout(10);
 		$result = $onvif->discover();
+		log::add(__CLASS__, 'debug', 'discoverCam -> ' . json_encode($result));
 		if (count($result) > 0) {
 			foreach ($result as $cam) {
 				$url = parse_url($cam['XAddrs']);
 				$return[] = array(
-					'ip' => $url['host'] . ':' . $url['port'],
+					'ip' => $url['host'],
+					'port' => $url['port'],
 					'type' => $cam['Types'],
 					'discover' => 'onvif',
+					'urn' => $cam['EndpointReference']['Address'],
+					'xaddrs' => $cam['XAddrs'],
 					'exist' => false,
 				);
 			}
@@ -324,13 +328,12 @@ class camera extends eqLogic {
 	}
 
 	public static function addDiscoverCam($_config) {
-		$host = explode(':', $_config['ip']);
 		$eqLogic = new self();
-		$eqLogic->setName($host[0]);
+		$eqLogic->setName($_config['ip']);
 		$eqLogic->setConfiguration('username', $_config['username']);
 		$eqLogic->setConfiguration('password', $_config['password']);
-		$eqLogic->setConfiguration('ip', $host[0]);
-		$eqLogic->setConfiguration('onvif_port', $host[1]);
+		$eqLogic->setConfiguration('ip', $_config['ip']);
+		$eqLogic->setConfiguration('onvif_port', $_config['port']);
 		$eqLogic->setEqType_name(__CLASS__);
 		$eqLogic->setIsVisible(1);
 		$eqLogic->setIsEnable(1);
@@ -354,6 +357,105 @@ class camera extends eqLogic {
 		} catch (Exception $e) {
 			log::add(__CLASS__, 'error', '[ONVIF] ' . $e->getMessage());
 		}
+	}
+  
+	public function getConfigOnvif() {
+		$return = array();
+		$ip = $this->getConfiguration('ip');
+		if ($ip == 'null' || $ip == '') {
+			throw new Exception(__("L'adresse IP ne peut être vide.", __FILE__));
+		}
+
+		foreach (camera::discoverCam() as $_cam) {
+			if ($_cam['ip'] == $ip) {
+				$return['onvif_port'] = $_cam['port'];
+				$xaddr = explode(" ",$_cam['xaddrs']);
+
+				$onvif = new ponvif();
+				$onvif->setUsername($this->getConfiguration('username'));
+				$onvif->setPassword($this->getConfiguration('password'));
+				$onvif->setIPAddress($ip);
+				$onvif->setMediaUri($xaddr[0]);
+				$onvif->initialize();
+				try {	
+					$profiles = $onvif->media_GetProfiles();
+					$token = $profiles[0]['@attributes']['token'];
+					$return['cameraStreamProfileToken'] = $token;
+				} catch(Exception $e) {
+					log::add(__CLASS__,'debug','media_GetProfiles : ' . $e);
+				}
+
+				try {
+                  $ptzUri = $onvif->getPTZUri();
+                  $return['ptzuri'] = $ptzUri;
+				} catch(Exception $e) {
+					log::add(__CLASS__,'debug','getPTZUri : ' . $e);
+				}
+				break;
+			}
+		}
+		return array('configuration' => $return);
+	}
+  
+	public function createCmdPresetOnvif() {
+		$return = array();
+		$ip = $this->getConfiguration('ip');
+		if ($ip == 'null' || $ip == '') {
+			throw new Exception(__("L'adresse IP ne peut etre vide.", __FILE__));
+		}
+
+		foreach (camera::discoverCam() as $_cam) {
+			if ($_cam['ip'] == $ip) {
+				$onvif = new ponvif();
+				$onvif->setUsername($this->getConfiguration('username'));
+				$onvif->setPassword($this->getConfiguration('password'));
+				$onvif->setIPAddress($ip);
+				$onvif->setMediaUri($xaddr[0]);
+				$onvif->initialize();
+				try {	
+					$profiles = $onvif->media_GetProfiles();
+					$token = $profiles[0]['@attributes']['token'];
+				} catch(Exception $e) {
+					log::add(__CLASS__,'debug','media_GetProfiles : ' . $e);
+				}
+
+				try {
+					$presets = $onvif->ptz_GetPresets($token);
+					$nbpresetMax = 10;
+					log::add(__CLASS__,'debug',json_encode($presets));
+					$nbpreset = 1;
+					$nbCreatepreset = 0;
+					foreach ($presets as $preset) {
+						if ($nbpreset > $nbpresetMax) break;
+						$logicalId = 'preset::' . preg_replace("/\s+/", '', $preset['Token']);
+						if (!is_object($this->getCmd(null, $logicalId))) {
+							log::add(__CLASS__,'debug', 'création du preset avec logicalId ' . $logicalId);
+							$cmdPreset = new cameraCmd();
+							$cmdPreset->setName($preset['Name']);
+							$cmdPreset->setType('action');
+							$cmdPreset->setSubType('other');
+							$cmdPreset->setEqLogic_id($this->getId());
+							$cmdPreset->setConfiguration('request', 'preset');
+							$cmdPreset->setConfiguration('token', $preset['Token']);
+							$cmdPreset->setLogicalId($logicalId);
+							try {
+								$cmdPreset->save();
+							} catch (Exception $e) {
+								$cmdPreset->setName($preset['Name'] . rand(0, 9999));
+								$cmdPreset->save();
+							}
+							$nbCreatepreset++;
+						}
+						$nbpreset++;
+					}
+					$return['createPreset'] = $nbCreatepreset;
+				} catch(Exception $e) {
+					log::add(__CLASS__,'debug','ptz_GetPresets : ' . $e);
+				}
+            }
+			break;
+		}
+		return $return;
 	}
 
 	public function decrypt() {
@@ -606,10 +708,10 @@ class camera extends eqLogic {
 		$sendSnapshot = $this->getCmd(null, 'sendSnapshot');
 		$recordState = $this->getCmd(null, 'recordState');
 		$replace_action = array(
-			'#record_id#' => $sendSnapshot->getId(),
-			'#stopRecord_id#' => $stopRecord->getId(),
-			'#recordState#' => $recordState->execCmd(),
-			'#recordState_id#' => $recordState->getId(),
+			'#record_id#' => is_object($sendSnapshot) ? $sendSnapshot->getId() : '""',
+			'#stopRecord_id#' => is_object($stopRecord) ? $stopRecord->getId() : '""',
+			'#recordState#' => is_object($recordState) ? $recordState->execCmd() : '0',
+			'#recordState_id#' => is_object($recordState) ? $recordState->getId() : '""',
 		);
 		$on = $this->getCmd(null, 'on');
 		$off = $this->getCmd(null, 'off');
@@ -1075,8 +1177,19 @@ class cameraCmd extends cmd {
 			$onvif = new Ponvif();
 			$onvif->setUsername($eqLogic->getConfiguration('username'));
 			$onvif->setPassword($eqLogic->getConfiguration('password'));
-			$onvif->setIPAddress($eqLogic->getConfiguration('ip') . ':' . $eqLogic->getConfiguration('onvif_port', 80));
-			$onvif->initialize();
+
+			$ptzuri = trim($eqLogic->getConfiguration('ptzuri', ''));
+			$fastMethode = ($ptzuri != '');
+
+			if ($fastMethode) { 
+				// fast method (no initialize)
+				$onvif->setIPAddress($eqLogic->getConfiguration('ip'));
+				$onvif->setPTZUri($ptzuri);
+            } else { 
+				// slow method
+				$onvif->setIPAddress($eqLogic->getConfiguration('ip') . ':' . $eqLogic->getConfiguration('onvif_port', 80));
+				$onvif->initialize();
+			}
 
 			$action = false;
 
@@ -1124,11 +1237,24 @@ class cameraCmd extends cmd {
 						$cmd->execCmd();
 					}
 					return true;
+				} else if ($action && $fastMethode) {
+					$onvif->ptz_Stop($profileToken, 'true', 'true');
+					return true;
+                }
+
+				//////////// Preset /////////////////
+				if (strpos($logicalId, 'preset') !== false) {
+					$presetToken = $this->getConfiguration('token', '');
+					if ($presetToken != '') {
+						$onvif->ptz_GotoPreset($profileToken, $presetToken, $speedX, $speedY, $speedZ);
+					}
 				}
+				//////////////////////////////////
 			} catch (Exception $e) {
-				log::add(__CLASS__, 'debug', 'onvif error reason for ' . $logicalId . ' : ' . json_encode($onvif->getLastResponse()));
+				log::add('camera', 'debug', 'onvif error reason for ' . $logicalId . ' : ' . json_encode($onvif->getLastResponse()));
 			}
 		}
+
 		if (strpos($request, '#') === 0) {
 			$cmd = cmd::byId(str_replace('#', '', $request));
 			if (is_object($cmd)) {
@@ -1144,7 +1270,7 @@ class cameraCmd extends cmd {
 					'#port#' => $eqLogic->getConfiguration('port'),
 				);
 				$request = str_replace(array_keys($replace), $replace, $request);
-				log::add(__CLASS__, 'debug', 'Executing ' . $request);
+				log::add('camera', 'debug', 'Executing ' . $request);
 				shell_exec($request);
 			} else {
 				$http = new com_http($url, $eqLogic->getConfiguration('username'), $eqLogic->getConfiguration('password'));
