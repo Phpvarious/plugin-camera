@@ -369,13 +369,12 @@ class camera extends eqLogic {
 		foreach (camera::discoverCam() as $_cam) {
 			if ($_cam['ip'] == $ip) {
 				$return['onvif_port'] = $_cam['port'];
-				$xaddr = explode(" ", $_cam['xaddrs']);
-
+				//$xaddr = explode(" ", $_cam['xaddrs']);
 				$onvif = new ponvif();
 				$onvif->setUsername($this->getConfiguration('username'));
 				$onvif->setPassword($this->getConfiguration('password'));
 				$onvif->setIPAddress($ip);
-				$onvif->setMediaUri($xaddr[0]);
+				//$onvif->setMediaUri($xaddr[0]);
 				$onvif->initialize();
 				try {	
 					$profiles = $onvif->media_GetProfiles();
