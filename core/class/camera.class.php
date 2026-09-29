@@ -369,30 +369,55 @@ class camera extends eqLogic {
 		foreach (camera::discoverCam() as $_cam) {
 			if ($_cam['ip'] == $ip) {
 				$return['onvif_port'] = $_cam['port'];
-				//$xaddr = explode(" ", $_cam['xaddrs']);
+				$xaddr = explode(" ",$_cam['xaddrs']); //
+
 				$onvif = new ponvif();
 				$onvif->setUsername($this->getConfiguration('username'));
 				$onvif->setPassword($this->getConfiguration('password'));
 				$onvif->setIPAddress($ip);
-				//$onvif->setMediaUri($xaddr[0]);
-				$onvif->initialize();
+				$onvif->setMediaUri($xaddr[0]); //
+
+				$etape = 0;
+				$error = false;
+
 				try {	
-					$profiles = $onvif->media_GetProfiles();
-					$token = $profiles[0]['@attributes']['token'];
-					$return['cameraStreamProfileToken'] = $token;
+					$onvif->initialize();
+					$etape++;
+					log::add(__CLASS__,'debug','[getConfigOnvif]  OK  Etape ' . $etape . ' - initialize');
 				} catch(Exception $e) {
-					log::add(__CLASS__,'debug','media_GetProfiles : ' . $e);
+					log::add(__CLASS__,'debug','[getConfigOnvif]  KO  Etape ' . $etape . ' - initialize : ' . $e);
+					$error = true;
 				}
 
-				try {
-                  $ptzUri = $onvif->getPTZUri();
-                  $return['ptzuri'] = $ptzUri;
-				} catch(Exception $e) {
-					log::add(__CLASS__,'debug','getPTZUri : ' . $e);
+				if (!$error) {
+					try {	
+						$profiles = $onvif->media_GetProfiles();
+						$token = $profiles[0]['@attributes']['token'];
+						$return['cameraStreamProfileToken'] = $token;
+						$etape++;
+						log::add(__CLASS__,'debug','[getConfigOnvif]  OK  Etape ' . $etape . ' - media_GetProfiles');
+					} catch(Exception $e) {
+						log::add(__CLASS__,'debug','[getConfigOnvif]  KO  Etape ' . $etape . ' - media_GetProfiles : ' . $e);
+						$error = true;
+					}
 				}
+
+				if (!$error) {
+					try {
+                  		$ptzUri = $onvif->getPTZUri();
+                  		$return['ptzuri'] = $ptzUri;
+                  		$etape++;
+                  		log::add(__CLASS__,'debug','[getConfigOnvif]  OK  Etape ' . $etape . ' - getPTZUri');
+					} catch(Exception $e) {
+						log::add(__CLASS__,'debug','[getConfigOnvif]  KO  Etape ' . $etape . ' - getPTZUri : ' . $e);
+						$error = true;
+					}
+                }
+
 				break;
 			}
 		}
+		log::add(__CLASS__,'debug','[getConfigOnvif] [INFO] Return -> ' . json_encode($return));
 		return array('configuration' => $return);
 	}
   
