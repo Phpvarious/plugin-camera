@@ -369,25 +369,26 @@ class camera extends eqLogic {
 		foreach (camera::discoverCam() as $_cam) {
 			if ($_cam['ip'] == $ip) {
 				$return['onvif_port'] = $_cam['port'];
-				$xaddr = explode(" ",$_cam['xaddrs']); //
+				$xaddr = explode(" ",$_cam['xaddrs']);
 
 				$onvif = new ponvif();
 				$onvif->setUsername($this->getConfiguration('username'));
 				$onvif->setPassword($this->getConfiguration('password'));
 				$onvif->setIPAddress($ip);
-				$onvif->setMediaUri($xaddr[0]); //
-
-				$etape = 0;
+				$onvif->setMediaUri($xaddr[0]);
+				
+				$etape = 1;
 				$error = false;
-
+              
 				try {	
 					$onvif->initialize();
-					$etape++;
 					log::add(__CLASS__,'debug','[getConfigOnvif]  OK  Etape ' . $etape . ' - initialize');
 				} catch(Exception $e) {
 					log::add(__CLASS__,'debug','[getConfigOnvif]  KO  Etape ' . $etape . ' - initialize : ' . $e);
 					$error = true;
 				}
+
+				$etape++;
 
 				if (!$error) {
 					try {	
@@ -402,6 +403,8 @@ class camera extends eqLogic {
 					}
 				}
 
+				$etape++;
+
 				if (!$error) {
 					try {
                   		$ptzUri = $onvif->getPTZUri();
@@ -413,7 +416,6 @@ class camera extends eqLogic {
 						$error = true;
 					}
                 }
-
 				break;
 			}
 		}
@@ -430,54 +432,79 @@ class camera extends eqLogic {
 
 		foreach (camera::discoverCam() as $_cam) {
 			if ($_cam['ip'] == $ip) {
+				$xaddr = explode(" ",$_cam['xaddrs']);
 				$onvif = new ponvif();
 				$onvif->setUsername($this->getConfiguration('username'));
 				$onvif->setPassword($this->getConfiguration('password'));
 				$onvif->setIPAddress($ip);
-				$onvif->initialize();
+				$onvif->setMediaUri($xaddr[0]);
+
+				$etape = 1;
+				$error = false;
+
 				try {	
-					$profiles = $onvif->media_GetProfiles();
-					$token = $profiles[0]['@attributes']['token'];
+					$onvif->initialize();
+					log::add(__CLASS__,'debug','[createCmdPresetOnvif]  OK  Etape ' . $etape . ' - initialize');
 				} catch(Exception $e) {
-					log::add(__CLASS__,'debug','media_GetProfiles : ' . $e);
+					log::add(__CLASS__,'debug','[createCmdPresetOnvif]  KO  Etape ' . $etape . ' - initialize : ' . $e);
+					$error = true;
 				}
 
-				try {
-					$presets = $onvif->ptz_GetPresets($token);
-					$nbpresetMax = 10;
-					log::add(__CLASS__,'debug',json_encode($presets));
-					$nbpreset = 1;
-					$nbCreatepreset = 0;
-					foreach ($presets as $preset) {
-						if ($nbpreset > $nbpresetMax) break;
-						$logicalId = 'preset::' . preg_replace("/\s+/", '', $preset['Token']);
-						if (!is_object($this->getCmd(null, $logicalId))) {
-							log::add(__CLASS__,'debug', 'création du preset avec logicalId ' . $logicalId);
-							$cmdPreset = new cameraCmd();
-							$cmdPreset->setName($preset['Name']);
-							$cmdPreset->setType('action');
-							$cmdPreset->setSubType('other');
-							$cmdPreset->setEqLogic_id($this->getId());
-							$cmdPreset->setConfiguration('request', 'preset');
-							$cmdPreset->setConfiguration('token', $preset['Token']);
-							$cmdPreset->setLogicalId($logicalId);
-							try {
-								$cmdPreset->save();
-							} catch (Exception $e) {
-								$cmdPreset->setName($preset['Name'] . rand(0, 9999));
-								$cmdPreset->save();
-							}
-							$nbCreatepreset++;
-						}
-						$nbpreset++;
+				$etape++;
+
+				if (!$error) {
+					try {	
+						$profiles = $onvif->media_GetProfiles();
+						$token = $profiles[0]['@attributes']['token'];
+						log::add(__CLASS__,'debug','[createCmdPresetOnvif]  OK  Etape ' . $etape . ' - media_GetProfiles');
+					} catch(Exception $e) {
+						log::add(__CLASS__,'debug','[createCmdPresetOnvif]  KO  Etape ' . $etape . ' - media_GetProfiles : ' . $e);
+						$error = true;
 					}
-					$return['createPreset'] = $nbCreatepreset;
-				} catch(Exception $e) {
-					log::add(__CLASS__,'debug','ptz_GetPresets : ' . $e);
+				}
+
+				$etape++;
+
+				if (!$error) {
+					try {
+						$presets = $onvif->ptz_GetPresets($token);
+						$nbpresetMax = 10;
+						log::add(__CLASS__,'debug','[createCmdPresetOnvif]  [INFO]  Etape ' . $etape . ' - ptz_GetPresets -> ' . json_encode($presets));
+						$nbpreset = 1;
+						$nbCreatepreset = 0;
+						foreach ($presets as $preset) {
+							if ($nbpreset > $nbpresetMax) break;
+							$logicalId = 'preset::' . preg_replace("/\s+/", '', $preset['Token']);
+							if (!is_object($this->getCmd(null, $logicalId))) {
+								log::add(__CLASS__,'debug','[createCmdPresetOnvif]  [NOTICE]  Création du preset avec logicalId ' . $logicalId);
+								$cmdPreset = new cameraCmd();
+								$cmdPreset->setName($preset['Name']);
+								$cmdPreset->setType('action');
+								$cmdPreset->setSubType('other');
+								$cmdPreset->setEqLogic_id($this->getId());
+								$cmdPreset->setConfiguration('request', 'preset');
+								$cmdPreset->setConfiguration('token', $preset['Token']);
+								$cmdPreset->setLogicalId($logicalId);
+								try {
+									$cmdPreset->save();
+								} catch (Exception $e) {
+									$cmdPreset->setName($preset['Name'] . rand(0, 9999));
+									$cmdPreset->save();
+								}
+								$nbCreatepreset++;
+							}
+							$nbpreset++;
+						}
+						$return['createPreset'] = $nbCreatepreset;
+					} catch(Exception $e) {
+						log::add(__CLASS__,'debug','[createCmdPresetOnvif]  KO  Etape ' . $etape . ' - ptz_GetPresets : ' . $e);
+						$error = true;
+					}
 				}
             }
 			break;
 		}
+		log::add(__CLASS__,'debug','[createCmdPresetOnvif] [INFO] Return -> ' . json_encode($return));
 		return $return;
 	}
 
