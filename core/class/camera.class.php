@@ -469,7 +469,7 @@ class camera extends eqLogic {
 					try {
 						$presets = $onvif->ptz_GetPresets($token);
 						$nbpresetMax = 10;
-						log::add(__CLASS__,'debug','[createCmdPresetOnvif]  [INFO]  Etape ' . $etape . ' - ptz_GetPresets -> ' . json_encode($presets));
+						log::add(__CLASS__,'debug','[createCmdPresetOnvif] [INFO] Etape ' . $etape . ' - ptz_GetPresets -> ' . json_encode($presets));
 						$nbpreset = 1;
 						$nbCreatepreset = 0;
 						foreach ($presets as $preset) {
@@ -1288,6 +1288,7 @@ class cameraCmd extends cmd {
 					}
 					return true;
 				} else if ($action && $fastMethode) {
+					usleep($sleep);
 					$onvif->ptz_Stop($profileToken, 'true', 'true');
 					return true;
                 }
