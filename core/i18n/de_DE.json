@@ -86,11 +86,12 @@
         "401 - Accès non autorisé": "401 - Nicht autorisierter Zugriff",
         "Action": "Aktion",
         "Ajouter": "Hinzufügen",
-        "Création réussie": "Erfolgreiche Erstellung",
         "Découverte": "Entdeckung",
         "IP": "IP",
         "Mot de passe": "Passwort",
         "Nom d'utilisateur": "Benutzername",
+        "Port": "Hafen",
+        "Protocole": "Protokolle",
         "Type": "Typ"
     },
     "plugins\/camera\/desktop\/modal\/health.php": {
@@ -119,6 +120,7 @@
         "Ajouter": "Hinzufügen",
         "Ajouter une commande": "Kommando hinzufügen",
         "Alimentation": "Versorgung",
+        "Analyse": "Analyse",
         "Aucun": "Ohne",
         "Aucun équipement Template trouvé, cliquer sur \"Ajouter\" pour commencer": "Keine Vorlagenausrüstung gefunden, klicken Sie auf \"Hinzufügen\", um zu beginnen",
         "Capture": "Erfassung",
@@ -133,7 +135,6 @@
         "Dupliquer": "Duplikat",
         "Durée maximum d'un enregistrement (s)": "Maximale Dauer einer Aufnahme (n)",
         "Découverte": "Entdeckung",
-        "Délai (de 0 à 5000)": "Verzögerung (von 0 bis 5000)",
         "Délai avant commande stop (en ms)": "Verzögerung vor Stoppbefehl (in ms)",
         "Equipement": "Gerät",
         "Equipement non visible": "Ausrüstung nicht sichtbar",
@@ -188,8 +189,6 @@
         "Vidéo": "Video",
         "Visible": "Sichtbar",
         "Vitesses X, Y et Z": "X-, Y- und Z-Geschwindigkeiten",
-        "Y (de 0 à 1)": "Y (0 bis 1)",
-        "Z (de 0 à 1)": "Z (von 0 bis 1)",
         "pour trouver les informations de configuration de nombreuses caméras": "um die Konfigurationsdaten zahlreicher Kameras zu finden",
         "à cette page": "auf dieser Seite"
     },
